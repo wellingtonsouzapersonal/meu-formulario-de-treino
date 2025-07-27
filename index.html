@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro de Carga de Treino</title>
+    <!-- Inclui o Tailwind CSS para estilização rápida e responsiva -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f2f5; /* Cor de fundo suave */
+            display: flex;
+            flex-direction: column; /* Permite que os elementos se empilhem verticalmente */
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .form-container, .records-container, .report-container {
+            background-color: #ffffff;
+            padding: 32px;
+            border-radius: 12px; /* Cantos arredondados */
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1); /* Sombra suave */
+            max-width: 600px;
+            width: 100%;
+            border: 1px solid #e0e0e0;
+            position: relative;
+            z-index: 1;
+            margin-bottom: 20px; /* Espaçamento entre os contentores */
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+        input[type="text"],
+        input[type="number"],
+        input[type="datetime-local"],
+        select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 8px; /* Cantos arredondados nos inputs */
+            font-size: 16px;
+            color: #555;
+            transition: border-color 0.3s ease;
+        }
+        input[type="text"]:focus,
+        input[type="number"]:focus,
+        input[type="datetime-local"]:focus,
+        select:focus {
+            outline: none;
+            border-color: #6366f1; /* Cor de foco do Tailwind (indigo-500) */
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+        }
+        button {
+            width: 100%;
+            padding: 14px;
+            background-color: #6366f1; /* Cor de fundo do botão (indigo-500) */
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #4f46e5; /* Cor mais escura no hover (indigo-600) */
+            transform: translateY(-2px); /* Efeito de "levantar" */
+        }
+        .exercise-item {
+            display: flex;
+            flex-wrap: wrap; /* Permite que os itens quebrem a linha em telas pequenas */
+            gap: 10px;
+            margin-bottom: 15px;
+            align-items: center;
+            padding: 10px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            background-color: #f9fafb;
+        }
+        .exercise-item input {
+            flex: 1 1 calc(33.33% - 10px); /* Ajustado para 3 campos por linha */
+            min-width: 80px; /* Garante largura mínima para inputs */
+        }
+        .exercise-item input[name="exercicioNome"] {
+            flex: 1 1 calc(100% - 10px); /* Nome do exercício ocupa mais espaço */
+        }
+        .exercise-item input[name="exercicioCadenciaMetodo"] { /* Novo estilo para cadência/método */
+            flex: 1 1 calc(100% - 10px); /* Ocupa a largura total na linha abaixo do nome */
+        }
+        .exercise-item input[name="exercicioCarga"],
+        .exercise-item input[name="exercicioRepeticoes"],
+        .exercise-item input[name="exercicioSeries"] { /* Estilo para os campos de carga, repetições, séries */
+            flex: 1 1 calc(33.33% - 10px);
+        }
+        .exercise-item .remove-btn {
+            background-color: #ef4444; /* Red-500 */
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            width: auto; /* Ajusta a largura para o conteúdo */
+            margin-top: 0; /* Remove a margem superior padrão do botão */
+            flex: 0 0 auto; /* Não cresce, largura automática */
+        }
+        .exercise-item .remove-btn:hover {
+            background-color: #dc2626; /* Red-600 */
+            transform: none; /* Remove o efeito de levantar para este botão */
+        }
+        .add-exercise-btn {
+            background-color: #10b981; /* Emerald-500 */
+            margin-top: 20px;
+        }
+        .add-exercise-btn:hover {
+            background-color: #059669; /* Emerald-600 */
+        }
+        .save-btn {
+            background-color: #2563eb; /* Blue-700 */
+        }
+        .save-btn:hover {
+            background-color: #1d4ed8; /* Blue-800 */
+        }
+        .delete-student-btn {
+            background-color: #ef4444; /* Red-500 */
+            margin-top: 10px;
+        }
+        .delete-student-btn:hover {
+            background-color: #dc2626; /* Red-600 */
+        }
+        .delete-student-btn:disabled {
+            background-color: #9ca3af; /* gray-400 */
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed; /* Stay in place */
+            z-index: 1000; /* Sit on top */
+            left: 0;
+            top: 0;
+            width: 100%; /* Full width */
+            height: 100%; /* Full height */
+            overflow: auto; /* Enable scroll if needed */
+            background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 400px;
+            border-radius: 12px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            text-align: center;
+        }
+        .modal-buttons {
+            margin-top: 20px;
+            display: flex;
+            justify-content: space-around;
+            gap: 10px;
+        }
+        .modal-buttons button {
+            width: 48%; /* Adjust width for two buttons */
+            padding: 10px;
+            font-size: 16px;
+            margin-top: 0; /* Override default button margin */
+        }
+        .modal-buttons .confirm-delete {
+            background-color: #ef4444;
+        }
+        .modal-buttons .confirm-delete:hover {
+            background-color: #dc2626;
+        }
+        .modal-buttons .cancel-delete {
+            background-color: #6b7280; /* gray-500 */
+        }
+        .modal-buttons .cancel-delete:hover {
+            background-color: #4b5563; /* gray-700 */
+        }
+        .logo {
+            display: block;
+            margin: 0 auto 20px auto; /* Centraliza a imagem e adiciona margem inferior */
+            max-width: 150px; /* Define um tamanho máximo para a logo */
+            height: auto;
+        }
+        .report-section {
+            background-color: #f0fdf4; /* green-50 */
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border: 1px solid #a7f3d0; /* green-200 */
+        }
+        .report-section h4 {
+            font-weight: 600;
+            color: #166534; /* green-800 */
+            margin-bottom: 10px;
+        }
+        .report-section ul {
+            list-style: disc;
+            margin-left: 20px;
+        }
+        .report-section li {
+            margin-bottom: 5px;
+        }
+        .report-total {
+            font-weight: 700;
+            margin-top: 10px;
+            color: #065f46; /* green-800 */
+        }
+        .daily-workout-summary {
+            background-color: #ecfdf5; /* green-50, slightly lighter */
+            border-left: 4px solid #34d399; /* green-400 */
+            padding: 10px;
+            margin-top: 10px;
+            margin-bottom: 5px;
+            border-radius: 4px;
+            font-size: 0.95em;
+        }
+        .daily-workout-summary p {
+            margin-bottom: 3px;
+        }
+        .daily-workout-summary strong {
+            color: #047857; /* green-700 */
+        }
+    </style>
+</head>
+<body>
+    <div class="form-container">
+        <!-- Logomarca adicionada aqui -->
+        <img src="https://raw.githubusercontent.com/wellingtonsouzapersonal/Formul-rio-de-Anaminese/main/WS%20LOGO%20MARCADA%CC%81GUA.png" alt="Logomarca" class="logo" onerror="this.onerror=null; this.src='https://placehold.co/150x50/cccccc/333333?text=Logo+Não+Encontrada';">
+
+        <h2 class="text-3xl font-bold text-center text-gray-800 mb-8">Registro de Carga de Treino</h2>
+
+        <form id="registroCargaForm" class="space-y-6">
+            <div class="form-group">
+                <label for="alunoSelect">Selecionar Aluno:</label>
+                <select id="alunoSelect" name="aluno" required class="rounded-lg">
+                    <option value="">-- Selecione um Aluno --</option>
+                    <!-- Opções de alunos serão carregadas via JavaScript -->
+                    <option value="Novo Aluno">Novo Aluno</option>
+                </select>
+            </div>
+
+            <div id="novoAlunoInput" class="form-group hidden">
+                <label for="nomeNovoAluno">Nome do Novo Aluno:</label>
+                <input type="text" id="nomeNovoAluno" name="nomeNovoAluno" class="rounded-lg" placeholder="Digite o nome do novo aluno">
+            </div>
+
+            <div class="form-group">
+                <label>Data e Hora do Treino:</label>
+                <input type="datetime-local" id="dataHoraTreino" name="dataHoraTreino" required class="rounded-lg">
+            </div>
+
+            <h3 class="text-xl font-semibold text-gray-700 mb-4">Exercícios e Cargas</h3>
+            <div id="exercisesContainer">
+                <!-- Exercícios serão adicionados aqui via JavaScript -->
+                <div class="exercise-item">
+                    <input type="text" name="exercicioNome" placeholder="Nome do Exercício" required class="rounded-lg">
+                    <input type="text" name="exercicioCadenciaMetodo" placeholder="Cadência/Método (Ex: 3010, FST-7)" class="rounded-lg"> <!-- Novo campo -->
+                    <input type="number" name="exercicioCarga" placeholder="Carga" step="0.1" required class="rounded-lg">
+                    <input type="number" name="exercicioRepeticoes" placeholder="Repetições" required class="rounded-lg">
+                    <input type="number" name="exercicioSeries" placeholder="Séries" required class="rounded-lg">
+                    <button type="button" class="remove-btn" onclick="removeExercise(this)">Remover</button>
+                </div>
+            </div>
+
+            <button type="button" class="add-exercise-btn" onclick="addExercise()">Adicionar Exercício</button>
+
+            <button type="submit" class="save-btn" id="submitButton">Salvar Registro</button>
+            <button type="button" class="delete-student-btn" id="deleteStudentButton" disabled onclick="showDeleteConfirmation()">Excluir Aluno Selecionado</button>
+        </form>
+    </div>
+
+    <!-- Container para exibir os registos de treino -->
+    <div class="records-container">
+        <h3 id="workoutRecordsTitle" class="text-2xl font-bold text-center text-gray-800 mb-6">Meus Registos de Treino</h3>
+        <div id="workoutRecordsDisplay">
+            <!-- Registos serão carregados aqui pelo JavaScript -->
+            <p class="text-gray-500 text-center">A carregar registos...</p>
+        </div>
+    </div>
+
+    <!-- Nova Secção para Relatórios de Periodização -->
+    <div class="report-container">
+        <h3 class="text-2xl font-bold text-center text-gray-800 mb-6">Relatório de Periodização</h3>
+        <p class="text-gray-600 text-center mb-4">Selecione um aluno para gerar o relatório de periodização semanal.</p>
+        <button type="button" class="save-btn" id="generateReportButton" disabled onclick="generatePeriodizationReport()">Gerar Relatório para Aluno Selecionado</button>
+        <div id="periodizationReportDisplay" class="mt-6">
+            <!-- O relatório será gerado aqui -->
+            <p class="text-gray-500 text-center">Nenhum relatório gerado ainda.</p>
+        </div>
+    </div>
+
+    <!-- Modal de Confirmação de Exclusão -->
+    <div id="deleteConfirmationModal" class="modal">
+        <div class="modal-content">
+            <p id="modalMessage" class="text-lg font-semibold text-gray-800">Tem certeza que deseja excluir o aluno <span id="studentNameToDelete" class="font-bold text-red-600"></span> e todos os seus registos de treino?</p>
+            <div class="modal-buttons">
+                <button class="confirm-delete" onclick="deleteSelectedStudent()">Sim, Excluir</button>
+                <button class="cancel-delete" onclick="hideDeleteConfirmation()">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const alunoSelect = document.getElementById('alunoSelect');
+        const novoAlunoInputDiv = document.getElementById('novoAlunoInput');
+        const nomeNovoAlunoInput = document.getElementById('nomeNovoAluno');
+        const registroCargaForm = document.getElementById('registroCargaForm');
+        const exercisesContainer = document.getElementById('exercisesContainer');
+        const workoutRecordsDisplay = document.getElementById('workoutRecordsDisplay');
+        const workoutRecordsTitle = document.getElementById('workoutRecordsTitle');
+        const deleteStudentButton = document.getElementById('deleteStudentButton');
+        const deleteConfirmationModal = document.getElementById('deleteConfirmationModal');
+        const studentNameToDeleteSpan = document.getElementById('studentNameToDelete');
+        const generateReportButton = document.getElementById('generateReportButton'); // Novo botão de relatório
+        const periodizationReportDisplay = document.getElementById('periodizationReportDisplay'); // Área de exibição do relatório
+
+        let currentSelectedStudent = null; // Variável para controlar o aluno selecionado
+
+        // --- Funções de Gestão de Dados no LocalStorage ---
+
+        // Carrega todos os registos do LocalStorage
+        function getRecordsFromLocalStorage() {
+            const recordsJSON = localStorage.getItem('workoutRecords');
+            return recordsJSON ? JSON.parse(recordsJSON) : [];
+        }
+
+        // Guarda todos os registos no LocalStorage
+        function saveRecordsToLocalStorage(records) {
+            localStorage.setItem('workoutRecords', JSON.stringify(records));
+        }
+
+        // Carrega a lista de alunos do LocalStorage
+        function getStudentsFromLocalStorage() {
+            const studentsJSON = localStorage.getItem('studentsList');
+            return studentsJSON ? JSON.parse(studentsJSON) : [];
+        }
+
+        // Guarda a lista de alunos no LocalStorage
+        function saveStudentsToLocalStorage(students) {
+            localStorage.setItem('studentsList', JSON.stringify(students));
+        }
+
+        // --- Funções de UI e Lógica do Formulário ---
+
+        // Preenche o dropdown de alunos com a lista guardada
+        function populateStudentDropdown() {
+            const students = getStudentsFromLocalStorage();
+            // Limpa as opções existentes, mantendo a primeira (selecione)
+            while (alunoSelect.children.length > 1) {
+                alunoSelect.removeChild(alunoSelect.lastChild);
+            }
+
+            students.forEach(studentName => {
+                const option = document.createElement('option');
+                option.value = studentName;
+                option.textContent = studentName;
+                alunoSelect.appendChild(option);
+            });
+
+            // Adiciona a opção "Novo Aluno" no final
+            const newStudentOption = document.createElement('option');
+            newStudentOption.value = "Novo Aluno";
+            newStudentOption.textContent = "Novo Aluno";
+            alunoSelect.appendChild(newStudentOption);
+
+            // Tenta manter a seleção após a atualização
+            if (currentSelectedStudent) {
+                alunoSelect.value = currentSelectedStudent;
+            }
+            
+            // Habilita/desabilita os botões de ação
+            updateActionButtonsState();
+        }
+
+        // Exibe os registos de treino (filtrados ou todos)
+        function displayWorkoutRecords(studentName = null) {
+            const allRecords = getRecordsFromLocalStorage();
+            let filteredRecords = [];
+
+            if (studentName && studentName !== "Novo Aluno") {
+                filteredRecords = allRecords.filter(record => record.aluno === studentName);
+                workoutRecordsTitle.textContent = `Registos de Treino para ${studentName}`;
+            } else {
+                filteredRecords = allRecords; // Exibe todos se nenhum aluno específico for selecionado
+                workoutRecordsTitle.textContent = `Meus Registos de Treino`;
+            }
+
+            workoutRecordsDisplay.innerHTML = ''; // Limpa a exibição atual
+
+            if (filteredRecords.length === 0) {
+                workoutRecordsDisplay.innerHTML = '<p class="text-gray-500 text-center mt-4">Nenhum registo de treino encontrado.</p>';
+                return;
+            }
+
+            // Ordena os registos por data (mais recente primeiro)
+            filteredRecords.sort((a, b) => {
+                const dateA = new Date(a.dataHoraTreino);
+                const dateB = new Date(b.dataHoraTreino);
+                return dateB - dateA;
+            });
+
+            filteredRecords.forEach(record => {
+                const date = new Date(record.dataHoraTreino).toLocaleString('pt-BR');
+                
+                let exercisesHtml = record.exercicios.map(ex => `
+                    <li>${ex.nome} ${ex.cadenciaMetodo ? `(${ex.cadenciaMetodo})` : ''}: Carga ${ex.carga} ${ex.unidade || ''} ${ex.repeticoes ? `(${ex.repeticoes} reps)` : ''} ${ex.series ? `(${ex.series} séries)` : ''}</li>
+                `).join('');
+
+                workoutRecordsDisplay.innerHTML += `
+                    <div class="record-item bg-blue-50 p-4 rounded-lg shadow-sm mb-4 border border-blue-200">
+                        <p class="font-semibold text-blue-800">Aluno: ${record.aluno}</p>
+                        <p class="text-sm text-gray-600">Data/Hora: ${date}</p>
+                        <p class="font-medium mt-2">Exercícios:</p>
+                        <ul class="list-disc list-inside ml-4">
+                            ${exercisesHtml}
+                        </ul>
+                    </div>
+                `;
+            });
+        }
+
+        // Habilita/desabilita os botões de ação (excluir aluno e gerar relatório)
+        function updateActionButtonsState() {
+            if (currentSelectedStudent && currentSelectedStudent !== '' && currentSelectedStudent !== 'Novo Aluno') {
+                deleteStudentButton.disabled = false;
+                generateReportButton.disabled = false;
+            } else {
+                deleteStudentButton.disabled = true;
+                generateReportButton.disabled = true;
+            }
+        }
+
+        // Exibe o modal de confirmação de exclusão
+        window.showDeleteConfirmation = function() {
+            if (currentSelectedStudent && currentSelectedStudent !== '' && currentSelectedStudent !== 'Novo Aluno') {
+                studentNameToDeleteSpan.textContent = currentSelectedStudent;
+                deleteConfirmationModal.style.display = 'flex'; // Use flex para centralizar
+            } else {
+                alert("Por favor, selecione um aluno para excluir.");
+            }
+        }
+
+        // Oculta o modal de confirmação
+        window.hideDeleteConfirmation = function() {
+            deleteConfirmationModal.style.display = 'none';
+        }
+
+        // Função para excluir o aluno selecionado e seus registros
+        window.deleteSelectedStudent = function() {
+            hideDeleteConfirmation(); // Esconde o modal
+
+            if (!currentSelectedStudent || currentSelectedStudent === '' || currentSelectedStudent === 'Novo Aluno') {
+                alert("Nenhum aluno válido selecionado para exclusão.");
+                return;
+            }
+
+            // Remove os registos de treino do aluno
+            let allRecords = getRecordsFromLocalStorage();
+            const updatedRecords = allRecords.filter(record => record.aluno !== currentSelectedStudent);
+            saveRecordsToLocalStorage(updatedRecords);
+
+            // Remove o aluno da lista de alunos
+            let students = getStudentsFromLocalStorage();
+            const updatedStudents = students.filter(student => student !== currentSelectedStudent);
+            saveStudentsToLocalStorage(updatedStudents);
+
+            alert(`Aluno '${currentSelectedStudent}' e todos os seus registos foram excluídos.`);
+
+            // Reseta a seleção e atualiza a UI
+            alunoSelect.value = '';
+            currentSelectedStudent = null;
+            populateStudentDropdown(); // Recarrega o dropdown de alunos
+            displayWorkoutRecords(); // Exibe todos os registos restantes
+            updateActionButtonsState(); // Atualiza o estado dos botões de ação
+            periodizationReportDisplay.innerHTML = '<p class="text-gray-500 text-center">Nenhum relatório gerado ainda.</p>'; // Limpa o relatório
+        }
+
+        // --- Funções de Periodização e Relatório ---
+
+        // Função auxiliar para obter o início da semana (segunda-feira)
+        function getStartOfWeek(date) {
+            const d = new Date(date);
+            const day = d.getDay(); // 0 = Domingo, 1 = Segunda, ..., 6 = Sábado
+            const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Ajusta para Segunda-feira
+            d.setDate(diff);
+            d.setHours(0, 0, 0, 0); // Zera a hora para comparação
+            return d;
+        }
+
+        // Função para formatar a data para exibição no relatório
+        function formatDateForReport(date) {
+            const options = { year: 'numeric', month: '2-digit', day: '2-digit' };
+            return new Date(date).toLocaleDateString('pt-BR', options);
+        }
+
+        // Função principal para gerar o relatório de periodização
+        window.generatePeriodizationReport = function() {
+            if (!currentSelectedStudent || currentSelectedStudent === '' || currentSelectedStudent === 'Novo Aluno') {
+                periodizationReportDisplay.innerHTML = '<p class="text-red-500 text-center">Por favor, selecione um aluno para gerar o relatório.</p>';
+                return;
+            }
+
+            const allRecords = getRecordsFromLocalStorage();
+            const studentRecords = allRecords.filter(record => record.aluno === currentSelectedStudent);
+
+            if (studentRecords.length === 0) {
+                periodizationReportDisplay.innerHTML = `<p class="text-gray-500 text-center">Nenhum registo de treino encontrado para ${currentSelectedStudent}.</p>`;
+                return;
+            }
+
+            // Agrupar registos por semana
+            const weeklyData = {}; // { 'YYYY-MM-DD (start of week)': { totalCargaSemana: X, totalSeriesSemana: Y, exercicios: {}, workouts: [] } }
+
+            studentRecords.forEach(record => {
+                const recordDate = new Date(record.dataHoraTreino);
+                const startOfWeek = getStartOfWeek(recordDate);
+                const weekKey = startOfWeek.toISOString().split('T')[0]; // Usa a data de início da semana como chave
+
+                if (!weeklyData[weekKey]) {
+                    weeklyData[weekKey] = {
+                        totalCargaSemana: 0,
+                        totalSeriesSemana: 0,
+                        exercicios: {}, // Para armazenar carga e séries por exercício dentro da semana (acumulado)
+                        workouts: [] // Para armazenar o resumo de cada treino individual nesta semana
+                    };
+                }
+
+                let currentRecordTotalCarga = 0;
+                let currentRecordTotalSeries = 0;
+
+                record.exercicios.forEach(ex => {
+                    const cargaTotalExercicio = ex.carga * ex.repeticoes * ex.series;
+                    const totalSeriesExercicio = ex.series;
+
+                    // Acumula para o total semanal
+                    weeklyData[weekKey].totalCargaSemana += cargaTotalExercicio;
+                    weeklyData[weekKey].totalSeriesSemana += totalSeriesExercicio;
+
+                    // Acumula para o total por exercício na semana
+                    if (!weeklyData[weekKey].exercicios[ex.nome]) {
+                        weeklyData[weekKey].exercicios[ex.nome] = { carga: 0, series: 0 };
+                    }
+                    weeklyData[weekKey].exercicios[ex.nome].carga += cargaTotalExercicio;
+                    weeklyData[weekKey].exercicios[ex.nome].series += totalSeriesExercicio;
+
+                    // Acumula para o total do treino individual
+                    currentRecordTotalCarga += cargaTotalExercicio;
+                    currentRecordTotalSeries += totalSeriesExercicio;
+                });
+
+                // Adiciona o resumo do treino individual à lista de treinos da semana
+                weeklyData[weekKey].workouts.push({
+                    date: record.dataHoraTreino,
+                    totalCarga: currentRecordTotalCarga,
+                    totalSeries: currentRecordTotalSeries
+                });
+            });
+
+            // Gerar o HTML do relatório
+            let reportHtml = `<h4 class="text-xl font-semibold text-gray-700 mb-4">Relatório Semanal para ${currentSelectedStudent}</h4>`;
+
+            // Ordenar as semanas da mais recente para a mais antiga
+            const sortedWeekKeys = Object.keys(weeklyData).sort((a, b) => new Date(b) - new Date(a));
+
+            sortedWeekKeys.forEach(weekKey => {
+                const weekData = weeklyData[weekKey];
+                const weekStartDate = new Date(weekKey);
+                const weekEndDate = new Date(weekStartDate);
+                weekEndDate.setDate(weekEndDate.getDate() + 6); // Fim da semana (6 dias após o início)
+
+                reportHtml += `
+                    <div class="report-section">
+                        <h4>Semana de ${formatDateForReport(weekStartDate)} a ${formatDateForReport(weekEndDate)}</h4>
+                        <p class="report-total">Carga Total da Semana: ${weekData.totalCargaSemana.toFixed(2)}</p>
+                        <p class="report-total">Total de Séries na Semana: ${weekData.totalSeriesSemana}</p>
+                        
+                        <p class="font-medium mt-4">Detalhes por Exercício (Total na Semana):</p>
+                        <ul class="list-disc list-inside ml-4">
+                `;
+                // Ordenar exercícios por nome
+                const sortedExercises = Object.keys(weekData.exercicios).sort();
+                sortedExercises.forEach(exerciseName => {
+                    const exData = weekData.exercicios[exerciseName];
+                    reportHtml += `
+                            <li>${exerciseName}: Carga Total ${exData.carga.toFixed(2)}, Séries Totais ${exData.series}</li>
+                    `;
+                });
+                reportHtml += `
+                        </ul>
+
+                        <p class="font-medium mt-4">Treinos Diários na Semana:</p>
+                        <ul class="list-disc list-inside ml-4">
+                `;
+                // Ordenar treinos diários pela data
+                const sortedWorkouts = weekData.workouts.sort((a, b) => new Date(a.date) - new Date(b.date));
+                sortedWorkouts.forEach(workout => {
+                    reportHtml += `
+                            <li class="daily-workout-summary">
+                                <p><strong>Data:</strong> ${new Date(workout.date).toLocaleString('pt-BR')}</p>
+                                <p><strong>Carga Total do Treino:</strong> ${workout.totalCarga.toFixed(2)}</p>
+                                <p><strong>Total de Séries do Treino:</strong> ${workout.totalSeries}</p>
+                            </li>
+                    `;
+                });
+                reportHtml += `
+                        </ul>
+                    </div>
+                `;
+            });
+
+            periodizationReportDisplay.innerHTML = reportHtml;
+        };
+
+
+        // --- Event Listeners e Funções Globais ---
+
+        // Função para adicionar um novo campo de exercício
+        window.addExercise = function() {
+            const newExerciseItem = document.createElement('div');
+            newExerciseItem.classList.add('exercise-item');
+            newExerciseItem.innerHTML = `
+                <input type="text" name="exercicioNome" placeholder="Nome do Exercício" required class="rounded-lg">
+                <input type="text" name="exercicioCadenciaMetodo" placeholder="Cadência/Método (Ex: 3010, FST-7)" class="rounded-lg"> <!-- Novo campo -->
+                <input type="number" name="exercicioCarga" placeholder="Carga" step="0.1" required class="rounded-lg">
+                <input type="number" name="exercicioRepeticoes" placeholder="Repetições" required class="rounded-lg">
+                <input type="number" name="exercicioSeries" placeholder="Séries" required class="rounded-lg">
+                <button type="button" class="remove-btn" onclick="removeExercise(this)">Remover</button>
+            `;
+            exercisesContainer.appendChild(newExerciseItem);
+        };
+
+        // Função para remover um campo de exercício
+        window.removeExercise = function(button) {
+            if (exercisesContainer.children.length > 1) {
+                button.closest('.exercise-item').remove();
+            } else {
+                console.warn("Não é possível remover o último exercício.");
+            }
+        };
+
+        // Lidar com a mudança de seleção do aluno
+        alunoSelect.addEventListener('change', function() {
+            currentSelectedStudent = this.value;
+            if (currentSelectedStudent === 'Novo Aluno') {
+                novoAlunoInputDiv.classList.remove('hidden');
+                nomeNovoAlunoInput.setAttribute('required', 'required');
+                workoutRecordsDisplay.innerHTML = '<p class="text-gray-500 text-center mt-4">Selecione ou adicione um aluno para ver os registos.</p>';
+                workoutRecordsTitle.textContent = `Meus Registos de Treino`;
+                periodizationReportDisplay.innerHTML = '<p class="text-gray-500 text-center">Nenhum relatório gerado ainda.</p>';
+            } else {
+                novoAlunoInputDiv.classList.add('hidden');
+                nomeNovoAlunoInput.removeAttribute('required');
+                nomeNovoAlunoInput.value = '';
+                displayWorkoutRecords(currentSelectedStudent); // Filtra por aluno selecionado ou mostra todos se for ""
+                periodizationReportDisplay.innerHTML = '<p class="text-gray-500 text-center">Clique em "Gerar Relatório" para ver a periodização.</p>';
+            }
+            updateActionButtonsState(); // Atualiza o estado dos botões de ação
+        });
+
+        // Lidar com o envio do formulário
+        registroCargaForm.addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            let alunoSelecionado = alunoSelect.value;
+            let isNewStudent = false;
+
+            if (alunoSelecionado === 'Novo Aluno') {
+                alunoSelecionado = nomeNovoAlunoInput.value.trim();
+                isNewStudent = true;
+                if (!alunoSelecionado) {
+                    alert("Por favor, digite o nome do novo aluno.");
+                    return;
+                }
+            } else if (alunoSelecionado === '') {
+                alert("Por favor, selecione um aluno ou adicione um novo.");
+                return;
+            }
+
+            const recordData = {
+                aluno: alunoSelecionado,
+                dataHoraTreino: document.getElementById('dataHoraTreino').value,
+                exercicios: []
+            };
+
+            const exercicioNomes = registroCargaForm.querySelectorAll('input[name="exercicioNome"]');
+            const exercicioCadenciaMetodos = registroCargaForm.querySelectorAll('input[name="exercicioCadenciaMetodo"]'); // Novo: campo de cadência/método
+            const exercicioCargas = registroCargaForm.querySelectorAll('input[name="exercicioCarga"]');
+            const exercicioRepeticoes = registroCargaForm.querySelectorAll('input[name="exercicioRepeticoes"]');
+            const exercicioSeries = registroCargaForm.querySelectorAll('input[name="exercicioSeries"]');
+
+            for (let i = 0; i < exercicioNomes.length; i++) {
+                const nome = exercicioNomes[i].value.trim();
+                const cadenciaMetodo = exercicioCadenciaMetodos[i].value.trim(); // Novo: obter valor da cadência/método
+                const carga = exercicioCargas[i].value;
+                const repeticoes = exercicioRepeticoes[i].value;
+                const series = exercicioSeries[i].value;
+                const unidade = ""; // Unidade vazia, pois foi removida
+
+                if (nome && carga && repeticoes && series) {
+                    recordData.exercicios.push({
+                        nome: nome,
+                        cadenciaMetodo: cadenciaMetodo, // Novo: adicionar ao objeto
+                        carga: parseFloat(carga),
+                        repeticoes: parseInt(repeticoes),
+                        series: parseInt(series),
+                        unidade: unidade 
+                    });
+                } else {
+                    alert("Por favor, preencha todos os campos de exercício (Nome, Carga, Repetições, Séries).");
+                    return;
+                }
+            }
+
+            if (recordData.exercicios.length === 0) {
+                alert("Por favor, adicione pelo menos um exercício.");
+                return;
+            }
+
+            // --- Salvar no LocalStorage ---
+            const allRecords = getRecordsFromLocalStorage();
+            allRecords.push(recordData);
+            saveRecordsToLocalStorage(allRecords);
+
+            // --- Gerir a lista de alunos no LocalStorage ---
+            if (isNewStudent) {
+                const students = getStudentsFromLocalStorage();
+                if (!students.includes(alunoSelecionado)) { // Evita duplicados
+                    students.push(alunoSelecionado);
+                    students.sort(); // Opcional: manter a lista ordenada
+                    saveStudentsToLocalStorage(students);
+                    populateStudentDropdown(); // Atualiza o dropdown
+                }
+            }
+
+            alert('Registo salvo localmente com sucesso!');
+            registroCargaForm.reset(); // Limpa o formulário
+            novoAlunoInputDiv.classList.add('hidden');
+            nomeNovoAlunoInput.removeAttribute('required');
+            nomeNovoAlunoInput.value = '';
+
+            // Reseta a seleção do aluno para a opção padrão e recarrega os registos
+            alunoSelect.value = '';
+            currentSelectedStudent = null;
+            displayWorkoutRecords(); // Mostra todos os registos atualizados
+            
+            // Limpa exercícios extras, deixando apenas um vazio
+            while(exercisesContainer.children.length > 1) {
+                exercisesContainer.removeChild(exercisesContainer.lastChild);
+            }
+            exercisesContainer.querySelector('input[name="exercicioNome"]').value = '';
+            exercisesContainer.querySelector('input[name="exercicioCadenciaMetodo"]').value = ''; // Novo: limpar campo de cadência/método
+            exercisesContainer.querySelector('input[name="exercicioCarga"]').value = '';
+            exercisesContainer.querySelector('input[name="exercicioRepeticoes"]').value = '';
+            exercisesContainer.querySelector('input[name="exercicioSeries"]').value = '';
+            updateActionButtonsState(); // Atualiza o estado dos botões de ação
+            periodizationReportDisplay.innerHTML = '<p class="text-gray-500 text-center">Nenhum relatório gerado ainda.</p>'; // Limpa o relatório
+        });
+
+        // Inicialização ao carregar a página
+        document.addEventListener('DOMContentLoaded', function() {
+            populateStudentDropdown(); // Carrega os alunos existentes
+            displayWorkoutRecords(); // Exibe todos os registos inicialmente
+            updateActionButtonsState(); // Garante que os botões de ação estejam no estado correto ao carregar
+        });
+    </script>
+</body>
+</html>
